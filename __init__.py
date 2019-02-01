@@ -64,18 +64,17 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
     return {'RUNNING_MODAL'}
 
   def execute(self, context):
-    export_objects = context.selected_objects
+    export_objects = context.scene.objects
+    if self.bExportSelected == True:
+      export_objects = context.selected_objects
     bpy.ops.object.select_all(action='DESELECT')
-
     for sceneobject in export_objects:
       if sceneobject.type == 'MESH':
+        sceneobject.select_set(True)
         if self.bUseObjectOrigin == True:
           # Temporarly move object to world origin
-          sceneobject.select_set(True)
           originalloc = sceneobject.matrix_world.to_translation()
-          print(sceneobject.name, "location: ", sceneobject.location)
           sceneobject.location = (0, 0, 0)
-          # then export
           exportpath = os.path.join(self.directory, self.prefix + sceneobject.name + self.suffix + self.filename_ext)
           bpy.ops.export_scene.fbx(
             filepath=exportpath,
@@ -117,9 +116,44 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
           # then move it back
           sceneobject.location = originalloc
         else:
-          return {'FINISHED'}  
-        return {'FINISHED'}    
-
+          exportpath = os.path.join(self.directory, self.prefix + sceneobject.name + self.suffix + self.filename_ext)
+          bpy.ops.export_scene.fbx(
+            filepath=exportpath,
+            check_existing=True,
+            filter_glob="*.fbx",
+            ui_tab='MAIN',
+            use_selection=True,
+            use_active_collection=False,
+            global_scale=1.0,
+            apply_unit_scale=True,
+            apply_scale_options='FBX_SCALE_NONE',
+            bake_space_transform=False,
+            object_types={'MESH'},
+            use_mesh_modifiers=True,
+            use_mesh_modifiers_render=True,
+            mesh_smooth_type='FACE',
+            use_mesh_edges=False,
+            use_tspace=False,
+            use_custom_props=False,
+            add_leaf_bones=True,
+            primary_bone_axis='Y',
+            secondary_bone_axis='X',
+            use_armature_deform_only=False,
+            armature_nodetype='NULL',
+            bake_anim=False,
+            bake_anim_use_all_bones=True,
+            bake_anim_use_nla_strips=True,
+            bake_anim_use_all_actions=True,
+            bake_anim_force_startend_keying=True,
+            bake_anim_step=1.0,
+            bake_anim_simplify_factor=1.0,
+            path_mode='AUTO',
+            embed_textures=False,
+            batch_mode='OFF',
+            use_batch_own_dir=True,
+            use_metadata=True,
+            axis_forward='X', axis_up='-Z'
+          )    
     return {'FINISHED'}
 
 def export_menu(self, context):
