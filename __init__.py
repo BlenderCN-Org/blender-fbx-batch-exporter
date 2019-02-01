@@ -123,7 +123,7 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
             check_existing=True,
             filter_glob="*.fbx",
             ui_tab='MAIN',
-            use_selection=True,
+            use_selection=False,
             use_active_collection=False,
             global_scale=1.0,
             apply_unit_scale=True,
