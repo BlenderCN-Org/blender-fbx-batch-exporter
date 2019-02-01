@@ -115,6 +115,7 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
           )
           # then move it back
           sceneobject.location = originalloc
+          sceneobject.select_set(False)
         else:
           exportpath = os.path.join(self.directory, self.prefix + sceneobject.name + self.suffix + self.filename_ext)
           bpy.ops.export_scene.fbx(
