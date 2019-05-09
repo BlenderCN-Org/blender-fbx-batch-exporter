@@ -19,6 +19,11 @@ bl_info = {
   "category": "Import-Export"
 }
 
+def selectObjectSockets(obj):
+  for child in bpy.data.objects:
+    if child.parent == obj:
+      child.select_set(True)
+
 # Props
 class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
   """Batch export FBX"""
@@ -37,7 +42,7 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
   )
 
   prefix = StringProperty(
-    default = "",
+    default = "SM_",
     name = "File prefix",
     description = "The File prefix"
   )
@@ -59,6 +64,11 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
     description = "Only export the selected meshes"
   )
 
+  bExportSockets = BoolProperty(
+    name = "Export Sockets",
+    description = "Export mesh sockets"
+  )
+
   def invoke(self, context, event):
     context.window_manager.fileselect_add(self)
     return {'RUNNING_MODAL'}
@@ -71,6 +81,8 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
     for sceneobject in export_objects:
       if sceneobject.type == 'MESH':
         sceneobject.select_set(True)
+        if self.bExportSockets == True:
+          selectObjectSockets(sceneobject)
         if self.bUseObjectOrigin == True:
           # Temporarly move object to world origin
           originalloc = sceneobject.matrix_world.to_translation()
@@ -87,7 +99,7 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
             apply_unit_scale=True,
             apply_scale_options='FBX_SCALE_NONE',
             bake_space_transform=False,
-            object_types={'MESH'},
+            object_types={'EMPTY', 'MESH', 'OTHER'},
             use_mesh_modifiers=True,
             use_mesh_modifiers_render=True,
             mesh_smooth_type='FACE',
@@ -129,7 +141,7 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
             apply_unit_scale=True,
             apply_scale_options='FBX_SCALE_NONE',
             bake_space_transform=False,
-            object_types={'MESH'},
+            object_types={'EMPTY', 'MESH', 'OTHER'},
             use_mesh_modifiers=True,
             use_mesh_modifiers_render=True,
             mesh_smooth_type='FACE',
@@ -155,6 +167,7 @@ class BatchExportFBX(bpy.types.Operator, bpy.types.FileSelectParams):
             use_metadata=True,
             axis_forward='X', axis_up='-Z'
           )    
+    bpy.ops.object.select_all(action='DESELECT') 
     return {'FINISHED'}
 
 def export_menu(self, context):
